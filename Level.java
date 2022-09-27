@@ -12,6 +12,7 @@ public class Level {
   public void render(Graphics g) {
     gameObjects.forEach((Entity e) -> {
       e.render(g);
+      e.update();
     });
   }
 

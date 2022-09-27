@@ -1,9 +1,8 @@
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 
 public class Player extends Entity {
-  private int hp;
-
   public Player() {
     
   }
@@ -16,6 +15,8 @@ public class Player extends Entity {
 
   @Override
   public void update() {
-    
+    if (Input.get().isKeyDown(KeyEvent.VK_W)) {
+      System.out.println("Test");
+    }
   }
 }

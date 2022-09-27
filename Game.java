@@ -1,6 +1,3 @@
-import javax.swing.JFrame;
-import java.awt.Canvas;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 
@@ -13,7 +10,6 @@ public class Game implements Runnable {
   public Thread thread;
   public boolean running = false;
   private BufferStrategy bs;
-  private Input input;
   private Graphics g;
 
   private Level currentLevel;
@@ -26,8 +22,7 @@ public class Game implements Runnable {
 
   private void init() {
     display = new Display(width, height, title);
-    input = new Input();
-    display.frame.addKeyListener(input);
+    display.frame.addKeyListener(Input.get());
     currentLevel = new Level();
   }
 
