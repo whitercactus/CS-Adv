@@ -1,90 +1,116 @@
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.util.ArrayList;
+import javax.swing.JFrame;
 
-public class Game implements Runnable {
+public class Game extends JFrame implements Runnable {
 
-  public int width, height, fps = 60;
-  private String title;
-  public Display display;
+	private static final long serialVersionUID = 1L;
+	public int mapWidth = 15;
+	public int mapHeight = 15;
+	private Thread thread;
+	private boolean running;
+	private BufferedImage image;
+	public int[] pixels;
+	public Screen screen;
+	private ArrayList<Texture> textures;
 
-  public Thread thread;
-  public boolean running = false;
-  private BufferStrategy bs;
-  private Graphics g;
+	public Camera camera;
 
-  private Level currentLevel;
+	public static Texture wood = new Texture("res/wood.png", 64);
+	public static Texture brick = new Texture("res/redbrick.png", 64);
+	public static Texture bluestone = new Texture("res/bluestone.png", 64);
+	public static Texture stone = new Texture("res/greystone.png", 64);
 
-  public Game(int width, int height, String title) {
-    this.width = width;
-    this.height = height;
-    this.title = title;
-  }
+	public static int[][] map = {
+		{1,1,1,1,1,1,1,1,2,2,2,2,2,2,2},
+		{1,0,0,0,0,0,0,0,2,0,0,0,0,0,2},
+		{1,0,3,3,3,3,3,0,0,0,0,0,0,0,2},
+		{1,0,3,0,0,0,3,0,2,0,0,0,0,0,2},
+		{1,0,3,0,0,0,3,0,2,2,2,0,2,2,2},
+		{1,0,3,0,0,0,3,0,2,0,0,0,0,0,2},
+		{1,0,3,3,0,3,3,0,2,0,0,0,0,0,2},
+		{1,0,0,0,0,0,0,0,2,0,0,0,0,0,2},
+		{1,1,1,1,1,1,1,1,4,4,4,0,4,4,4},
+		{1,0,0,0,0,0,1,4,0,0,0,0,0,0,4},
+		{1,0,0,0,0,0,1,4,0,0,0,0,0,0,4},
+		{1,0,0,2,0,0,1,4,0,3,3,3,3,0,4},
+		{1,0,0,0,0,0,1,4,0,3,3,3,3,0,4},
+		{1,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
+		{1,1,1,1,1,1,1,4,4,4,4,4,4,4,4}
+	};
 
-  private void init() {
-    display = new Display(width, height, title);
-    display.frame.addKeyListener(Input.get());
-    currentLevel = new Level();
-  }
+	public Game() {
+		thread = new Thread(this);
+		image = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
+		pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+		setSize(640, 480);
+		setResizable(false);
+		setTitle("3D Engine");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBackground(Color.black);
+		setLocationRelativeTo(null);
+		setVisible(true);
+		camera = new Camera(4.5, 4.5, 1, 0, 0, -.66);
+		addKeyListener(camera);
+		textures = new ArrayList<Texture>();
+		textures.add(wood);
+		textures.add(brick);
+		textures.add(bluestone);
+		textures.add(stone);
+		screen = new Screen(map, mapWidth, mapHeight, textures, 640, 480);
+		start();
+	}
 
-  private void tick() {
-    currentLevel.update();
-  }
+	private synchronized void start() {
+		running = true;
+		thread.start();
+	}
 
-  private void render() {
-    bs = display.canvas.getBufferStrategy();
-    if (bs == null) {
-      display.canvas.createBufferStrategy(3);
-      return;
-    }
+	public synchronized void stop() {
+		running = false;
+		try {
+			thread.join();
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 
-    g = bs.getDrawGraphics();
-    g.clearRect(0, 0, width, height);
+	public void render() {
+		BufferStrategy bs = getBufferStrategy();
+		if(bs == null) {
+			createBufferStrategy(3);
+			return;
+		}
 
-    currentLevel.render(g);
+		Graphics g = bs.getDrawGraphics();
+		g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+		bs.show();
+	}
 
-    bs.show();
-    g.dispose();
-  }
+	public void run() {
+		long lastTime = System.nanoTime();
+		final double ns = 1000000000.0 / 60.0;//60 times per second
+		double delta = 0;
+		requestFocus();
+		while (running) {
+			long now = System.nanoTime();
+			delta = delta + ((now-lastTime) / ns);
+			lastTime = now;
+			while (delta >= 1) {
+				screen.update(camera, pixels);
+				camera.update(map);
+				delta--;
+			}
+			render();//displays to the screen unrestricted time
+		}
+	}
 
-  public void run() {
-    init();
-
-    double tickDuration = 1000000000 / fps;
-    double delta = 0;
-    long now;
-    long lastTime = System.nanoTime();
-
-    while (running) {
-      now = System.nanoTime();
-      delta += (now - lastTime) / tickDuration;
-      lastTime = now;
-
-      if (delta >= 1) {
-        tick();
-        render();
-        delta--;
-      }
-    }
-
-    stop();
-  }
-
-  public synchronized void start() {
-    if (running)
-      return;
-    running = true;
-    thread = new Thread(this);
-    thread.start();
-  }
-
-  public synchronized void stop() {
-    if (!running)
-      return;
-    running = false;
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
+	public static void main(String [] args) {
+		Game game = new Game();
+	}
 }
+
