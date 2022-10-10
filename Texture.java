@@ -9,6 +9,11 @@ public class Texture {
 	private String loc;
 	public final int SIZE;
 
+  public static Texture wood = new Texture("res/wood.png", 64);
+	public static Texture brick = new Texture("res/redbrick.png", 64);
+	public static Texture bluestone = new Texture("res/bluestone.png", 64);
+	public static Texture stone = new Texture("res/greystone.png", 64);
+
 	public Texture(String location, int size) {
 		loc = location;
 		SIZE = size;
