@@ -20,10 +20,10 @@ public class Game extends JFrame implements Runnable {
 
   public Camera camera;
 
-  public static Texture wood = new Texture("res/wood.png", 64);
-  public static Texture brick = new Texture("res/redbrick.png", 64);
-  public static Texture bluestone = new Texture("res/bluestone.png", 64);
-  public static Texture stone = new Texture("res/greystone.png", 64);
+  public static Texture wood = new Texture("res/wall.png", 64);
+  public static Texture brick = new Texture("res/wall.png", 64);
+  public static Texture bluestone = new Texture("res/wall.png", 64);
+  public static Texture stone = new Texture("res/wall.png", 64);
 
   public static int[][] map = {
       { 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 },
@@ -45,11 +45,11 @@ public class Game extends JFrame implements Runnable {
 
   public Game() {
     thread = new Thread(this);
-    image = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
+    image = new BufferedImage(1280, 720, BufferedImage.TYPE_INT_RGB);
     pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-    setSize(640, 480);
+    setSize(1280, 720);
     setResizable(false);
-    setTitle("3D Engine");
+    setTitle("KoЯn");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setBackground(Color.black);
     setLocationRelativeTo(null);
@@ -61,7 +61,7 @@ public class Game extends JFrame implements Runnable {
     textures.add(brick);
     textures.add(bluestone);
     textures.add(stone);
-    screen = new Screen(map, mapWidth, mapHeight, textures, 640, 480);
+    screen = new Screen(map, mapWidth, mapHeight, textures, 1280, 720);
     start();
   }
 
